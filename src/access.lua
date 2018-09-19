@@ -5,6 +5,7 @@ local url = require "socket.url"
 
 local string_format = string.format
 
+local set_header = ngx.req.set_header
 local get_headers = ngx.req.get_headers
 local get_uri_args = ngx.req.get_uri_args
 local read_body = ngx.req.read_body
@@ -115,6 +116,16 @@ function _M.execute(conf)
     end
 
     return responses.send(status_code, response_body)
+
+  else
+    for body_key,body_value in pairs(body) do
+      for _,forward_pattern in pairs(conf.forwards) do      
+        if string.match(body_key, "^"..forward_pattern.."$") then
+          set_header("X-"..body_key, body_value)
+        end
+      end
+    end
+
   end
 
 end
