@@ -47,6 +47,7 @@ $ curl -X POST http://kong:8001/apis/{api}/plugins \
     --data "config.response=table"
     --data "config.timeout=10000"
     --data "config.keepalive=60000"
+    --data "config.forwards="
 </pre>
 
 <table><thead>
@@ -80,6 +81,11 @@ $ curl -X POST http://kong:8001/apis/{api}/plugins \
 <td><code>config.keepalive</code></td>
 <td></td>
 <td>Keepalive time (miliseconds) for the request to the URL specified above. Default value is 60000.</td>
+</tr>
+tr>
+<td><code>config.forwards</code></td>
+<td></td>
+<td>The JSON path to be forwarded to upstream</td>
 </tr>
 </tbody></table>
 
