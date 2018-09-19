@@ -5,6 +5,7 @@ local url = require "socket.url"
 
 local string_format = string.format
 
+local set_header = ngx.req.set_header
 local get_headers = ngx.req.get_headers
 local get_uri_args = ngx.req.get_uri_args
 local read_body = ngx.req.read_body
@@ -31,6 +32,25 @@ local function parse_url(host_url)
     parsed_url.path = "/"
   end
   return parsed_url
+end
+
+function split(str, pat)
+  local t = {}  -- NOTE: use {n = 0} in Lua-5.0
+  local fpat = "(.-)" .. pat
+  local last_end = 1
+  local s, e, cap = str:find(fpat, 1)
+  while s do
+     if s ~= 1 or cap ~= "" then
+        table.insert(t,cap)
+     end
+     last_end = e+1
+     s, e, cap = str:find(fpat, last_end)
+  end
+  if last_end <= #str then
+     cap = str:sub(last_end)
+     table.insert(t, cap)
+  end
+  return t
 end
 
 function _M.execute(conf)
@@ -115,6 +135,25 @@ function _M.execute(conf)
     end
 
     return responses.send(status_code, response_body)
+
+  else
+    body = JSON:decode(body)
+
+    for _, forward_pattern in pairs(conf.forwards) do
+      local current = body
+      local current_forward = ""
+      for _, forwarding in pairs(split(forward_pattern, "%.")) do
+        current_forward = forwarding
+        if current[forwarding] ~= nil then
+          current = current[forwarding]
+        else
+          break
+        end
+      end
+      
+      set_header("X-"..current_forward, current)
+    end
+
   end
 
 end
